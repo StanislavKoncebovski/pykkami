@@ -25,7 +25,6 @@ class Series:
 
     # region Protected members
     _instances: dict[str, Instance] = {}
-
     # endregion
 
     # region Construction
