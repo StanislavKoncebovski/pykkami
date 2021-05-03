@@ -1,23 +1,30 @@
 import Study
 from datetime import date
 from enumerations import Gender
-from dicom.DicomUidProvider import DicomUidProvider
+from DicomStuff.DicomUidProvider import DicomUidProvider
 
 
 class Patient:
+    """
+    Abstraction of a patient, according to DICOM
+    """
     # region Members
-    patient_id: str = None
-    name: str = ""
-    date_of_birth: date = date.min
-    gender: Gender = Gender.Unknown
+    patient_id: str = None              # Patient ID
+    name: str = ""                      # Patient's name, in DICOM notation
+    date_of_birth: date = date.min      # Patient's date of birth
+    gender: Gender = Gender.Unknown     # Patient's gender
     # endregion
 
     # region Protected members
-    _studies: dict[str, Study] = {}
+    _studies: dict[str, Study] = {}     # Dictionary of patient's studies. Key: StudyUID; Value: the study.
     # endregion
 
     # region Construction
     def __init__(self, patient_id_=None):
+        """
+        Creates an instance of Patient.
+        :param patient_id_: The ID of the patient. If set to None (default), an automatic PatientID is generated.
+        """
         if patient_id_ is None or len(patient_id_) < 1:
             self.patient_id = DicomUidProvider.create_patient_id()
         else:
@@ -27,10 +34,10 @@ class Patient:
     # region Management
     def add_study(self, study: Study):
         """
-        Adds a study to the studies of the patients, if the study_uid is not already present;
-        otherwise, nothing happens-
-        :param study: study to add.
-        :return:
+        Adds a study to the studies of the patient, if the study_uid is not already present;
+        otherwise, nothing happens.
+        :param study: The study to add.
+        :return: None.
         """
         if study.study_uid not in self._studies.keys():
             study.patient = self
@@ -40,6 +47,10 @@ class Patient:
 
     # region String representation
     def __str__(self):
+        """
+        String representing the patient.
+        :return: The string representation.
+        """
         return f"[{self.patient_id}]: {self.name} ({self.date_of_birth}, {self.gender}). {len(self._studies)} studies"
     # endregion
 

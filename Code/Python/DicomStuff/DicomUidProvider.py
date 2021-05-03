@@ -1,6 +1,6 @@
 import datetime
 from random import randrange
-import dicom.DicomConstants
+import DicomStuff.DicomConstants
 
 
 class DicomUidProvider:
@@ -32,5 +32,5 @@ class DicomUidProvider:
     def create_uid(cls, infix: str) -> str:
         # the random component of the uid
         random = f"{randrange(1, cls._max_random_component)}"
-        return f'{dicom.DicomConstants.DICOM_ROOT}.{infix}.{datetime.datetime.now().strftime("%Y%M%d%H%M%S.%f")[:-3]}.{random}'
+        return f'{DicomStuff.DicomConstants.DICOM_ROOT}.{infix}.{datetime.datetime.now().strftime("%Y%M%d%H%M%S.%f")[:-3]}.{random}'
     # endregion
