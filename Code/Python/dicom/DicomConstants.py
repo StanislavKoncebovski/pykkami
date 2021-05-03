@@ -1,0 +1,12 @@
+from datetime import date, datetime
+
+DICOM_ROOT = "1.2.826.0.1.3680043.9.5458"
+MIN_PATIENT_DATE_OF_BIRTH: date = date(1900, 1, 1)
+MIN_STUDY_DATETIME: datetime = datetime(1970, 1, 1)
+MIN_SERIES_DATETIME: datetime = datetime(1970, 1, 1)
+
+VERIFICATION_SOP_CLASS = "1.2.840.10008.1.1"
+DEFAULT_TRANSFER_SYNTAX = "1.2.840.10008.1.2.1"
+DEFAULT_CHARACTER_SET = ["ISO_IR 100"]
+
+
