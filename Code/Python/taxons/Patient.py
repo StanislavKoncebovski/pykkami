@@ -1,66 +1,53 @@
-from Taxon import Taxon
+import Study
 from datetime import date
 from enumerations import Gender
+from dicom.DicomUidProvider import DicomUidProvider
 
 
-class Patient(Taxon):
-    # region Protected Members
-    _name: str = ""
-    _date_of_birth: date = date.min
-    _gender: Gender = Gender.Unknown
+class Patient:
+    # region Members
+    patient_id: str = None
+    name: str = ""
+    date_of_birth: date = date.min
+    gender: Gender = Gender.Unknown
+    # endregion
+
+    # region Protected members
+    _studies: dict[str, Study] = {}
     # endregion
 
     # region Construction
-    def __init__(self):
-        pass
+    def __init__(self, patient_id_=None):
+        if patient_id_ is None or len(patient_id_) < 1:
+            self.patient_id = DicomUidProvider.create_patient_id()
+        else:
+            self.patient_id = patient_id_
     # endregion
 
-    # region Properties
-    @property
-    def name(self) -> str:
-        return self._name
+    # region Management
+    def add_study(self, study: Study):
+        """
+        Adds a study to the studies of the patients, if the study_uid is not already present;
+        otherwise, nothing happens-
+        :param study: study to add.
+        :return:
+        """
+        if study.study_uid not in self._studies.keys():
+            study.patient = self
+            self._studies[study.study_uid] = study
 
-    @property
-    def date_of_birth(self) -> date:
-        return self._date_of_birth
-
-    @property
-    def gender(self) -> Gender:
-        return self._gender
-
-    @property
-    def patient_id(self) -> str:
-        return super().uid
-
-    @name.setter
-    def name(self, value: str):
-        self._name = value
-
-    @date_of_birth.setter
-    def date_of_birth(self, value: date):
-        self._date_of_birth = value
-
-    @gender.setter
-    def gender(self, value: Gender):
-        self._gender = value
-
-    @patient_id.setter
-    def patient_id(self, value: str):
-        self.uid = value
     # endregion
 
     # region String representation
     def __str__(self):
-        return f"[{self.uid}]: {self._name} ({self._date_of_birth}, {self._gender})"
+        return f"[{self.patient_id}]: {self.name} ({self.date_of_birth}, {self.gender}). {len(self._studies)} studies"
     # endregion
 
 
 if __name__ == '__main__':
     p1 = Patient()
     p1.name = "Testmann^Theo"
-    p1.patient_id = "1007.87621"
     p1.date_of_birth = date(1970, 12, 5)
     p1.gender = Gender.Male
-
 
     print(p1)
