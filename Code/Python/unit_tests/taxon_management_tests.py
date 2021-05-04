@@ -2,9 +2,13 @@ import unittest
 from faker import Faker
 import random
 from datetime import datetime, date, timedelta
+
+
 from Taxons.Instance import Instance
 from Taxons.Patient import Patient
-from enumerations import Gender
+from Taxons.Study import Study
+from Taxons.Series import Series
+from enumerations import Gender, AnatomicRegion, Modality
 
 
 def create_date_of_birth():
@@ -30,21 +34,67 @@ def create_dicom_name_(gender: Gender = Gender.Unknown):
     return f"{family_name}^{given_name}"
 
 
+def create_patient() -> Patient:
+    patient = Patient()
+
+    patient.date_of_birth = create_date_of_birth()
+
+    r = random.randint(0, 100)
+    if r <= 50:
+        patient.gender = Gender.Female
+    else:
+        patient.gender = Gender.Male
+
+    patient.name = create_dicom_name_(patient.gender)
+    return patient
+
+
+def create_study() -> Study:
+    fake = Faker()
+
+    study = Study()
+    study.study_id = f"S_{random.randint(100, 1000)}"
+    study.study_description = fake.text(42)
+    study.study_date_time = datetime.now()
+    study.accession_number = f"AC_{random.randint(100, 1000)}"
+    study.anatomic_region = random.choice(list(AnatomicRegion))
+    study.institution_name = fake.company()
+    study.referring_physician_name = create_dicom_name_()
+
+    return study
+
+def create_series() -> Series:
+    fake = Faker()
+
+    series = Series()
+    series.series_datetime  = datetime.now()
+    series.series_number = random.randint(1, 100)
+    series.series_description = fake.text(42)
+    series.modality = random.choice(list(Modality))
+    series.pixel_spacing = (random.randint(50, 100) / 100, random.randint(50, 100) / 100)
+    series.protocol_name = fake.text(42)
+    series.sequence_name = fake.text(42)
+    series.spacing_between_slices = random.randint(100, 500) / 100
+
+    return series
+
 class TaxonManagementTests(unittest.TestCase):
     def test_creation_of_patient_succeeds(self):
-        patient = Patient()
-
-        patient.date_of_birth = create_date_of_birth()
-
-        r = random.randint(0, 100)
-        if r <= 50:
-            patient.gender = Gender.Female
-        else:
-            patient.gender = Gender.Male
-        
-        patient.name = create_dicom_name_(patient.gender)
-
+        patient = create_patient()
         print(patient)
 
-        instance = Instance()
-        print(instance)
+
+    def test_creation_of_study_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        print(patient)
+
+    def test_creation_of_series_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+
+        print(series)
+        study.add_series(series)

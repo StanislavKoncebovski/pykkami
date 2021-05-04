@@ -2,6 +2,7 @@ from DicomStuff import DicomConstants
 from Taxons import Study, Instance
 from enumerations import Modality
 import DataTypes
+from DicomStuff.DicomUidProvider import DicomUidProvider
 
 
 class Series:
