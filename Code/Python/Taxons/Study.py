@@ -1,5 +1,5 @@
 from datetime import datetime, date
-import Patient
+from Patient import Patient
 import Series
 from DicomStuff import DicomConstants
 from DicomStuff.DicomUidProvider import DicomUidProvider

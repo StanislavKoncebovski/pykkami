@@ -1,8 +1,10 @@
+import os.path
 import pydicom as dicom
+from Data.IDicomStorage import IDicomStorage
 from Taxons.Series import Series, Instance
 
 
-class IDicomStorage:
+class BasicDicomStorage(IDicomStorage):
     """
     Interface of the file system DICOM storage.
     The structure of the system is as follows:
@@ -25,6 +27,8 @@ class IDicomStorage:
      +-Patient_N
 
     """
+    def __init__(self):
+        self._root_folder = ""
     # region Properties
     @property
     def root_folder(self) -> str:
@@ -32,7 +36,7 @@ class IDicomStorage:
         Gets the root folder of the storage file system.
         :return: The name of the root folder.
         """
-        return ''
+        return self._root_folder
     # endregion
 
     def initialize(self, root_folder_: str):
@@ -41,7 +45,13 @@ class IDicomStorage:
         :param root_folder_: The name of the root folder to create.
         :return:
         """
-        pass
+        try:
+            self._root_folder = root_folder_
+            if not os.path.isdir(self._root_folder):
+                os.mkdir(self._root_folder)
+        except IOError:
+            pass
+
 
     def store_dataset(self, dataset: dicom.dataset):
         """

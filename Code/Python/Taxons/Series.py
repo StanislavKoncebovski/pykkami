@@ -1,4 +1,4 @@
-import Study
+from Taxons.Study import Study
 import Instance
 from DicomStuff import DicomConstants
 from enumerations import Modality
