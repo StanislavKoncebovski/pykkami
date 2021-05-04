@@ -3,6 +3,7 @@ from faker import Faker
 import random
 from datetime import datetime, date, timedelta
 from Taxons.Instance import Instance
+from Taxons.Patient import Patient
 from enumerations import Gender
 
 
@@ -31,19 +32,19 @@ def create_dicom_name_(gender: Gender = Gender.Unknown):
 
 class TaxonManagementTests(unittest.TestCase):
     def test_creation_of_patient_succeeds(self):
-        # patient = Patient()
-        #
-        # patient.date_of_birth = create_date_of_birth()
-        #
-        # r = random.randint(0, 100)
-        # if r <= 100:
-        #     patient.gender = Gender.Female
-        # else:
-        #     patient.gender = Gender.Male
-        #
-        # patient.name = create_dicom_name_(patient.gender)
-        #
-        # print(patient)
+        patient = Patient()
+
+        patient.date_of_birth = create_date_of_birth()
+
+        r = random.randint(0, 100)
+        if r <= 50:
+            patient.gender = Gender.Female
+        else:
+            patient.gender = Gender.Male
+        
+        patient.name = create_dicom_name_(patient.gender)
+
+        print(patient)
 
         instance = Instance()
         print(instance)
