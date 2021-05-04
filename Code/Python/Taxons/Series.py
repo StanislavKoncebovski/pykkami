@@ -2,6 +2,7 @@ import Study
 import Instance
 from DicomStuff import DicomConstants
 from enumerations import Modality
+import DataTypes
 
 
 class Series:
@@ -22,9 +23,8 @@ class Series:
     sequence_name: str = ""                                                     # Name of the DICOM sequence
     protocol_name: str = ""                                                     # Name of the acquisition protocol
     spacing_between_slices: float = 0.0                                         # Spacing between slices
-    pixel_spacing: (float, float) = (0, 0)                                      # Pixel spacing: mm/pix: (rows, columns)
-    image_orientation_patient: [(float, float, float), (float, float, float)] = \
-                                                        [(1, 0, 0), (0, 1, 0)]  # DICOM image orientation in patient vector pair
+    pixel_spacing: DataTypes.PixelSpacing = (0, 0)                              # Pixel spacing: mm/pix: (rows, columns)
+    image_orientation_patient: DataTypes.Vector3DPair = [(1, 0, 0), (0, 1, 0)]  # DICOM image orientation in patient vector pair
     # endregion
 
     # region Protected members

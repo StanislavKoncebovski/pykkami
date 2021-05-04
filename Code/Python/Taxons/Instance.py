@@ -1,5 +1,6 @@
 import Series
 import pydicom as dicom
+import DataTypes
 
 
 class Instance:
@@ -10,7 +11,7 @@ class Instance:
     series: Series = None                                           # The series, owner of the instance
     instance_uid: str = None                                        # Globally unique instance UID
     instance_number: int = 0                                        # DICOM instance number in the series
-    instance_position_patient: (float, float, float) = (0, 0, 0)    # DICOM image position in patient as a 3D vector
+    instance_position_patient: DataTypes.Point3D = (0, 0, 0)        # DICOM image position in patient as a 3D vector
     dicom_dataset: dicom.dataset = None                             # DICOM dataset.
     # endregion
 
