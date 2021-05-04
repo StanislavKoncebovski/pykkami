@@ -1,6 +1,5 @@
-from Taxons.Study import Study
-import Instance
 from DicomStuff import DicomConstants
+from Taxons import Study, Instance
 from enumerations import Modality
 import DataTypes
 
@@ -10,7 +9,7 @@ class Series:
     Abstraction of a series, according to DICOM.
     """
     # region Members
-    study: Study = None                                                         # The study, owner of the series
+    study: Study.Study = None                                                   # The study, owner of the series
     series_uid: str = None                                                      # Globally unique series UID
 
     sop_class: str = DicomConstants.VERIFICATION_SOP_CLASS                      # SOP Class UID

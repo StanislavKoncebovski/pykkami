@@ -1,5 +1,5 @@
-import Study
 from datetime import date
+from Taxons import Study
 from enumerations import Gender
 from DicomStuff.DicomUidProvider import DicomUidProvider
 

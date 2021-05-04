@@ -1,8 +1,7 @@
 from datetime import datetime, date
-from Patient import Patient
-import Series
 from DicomStuff import DicomConstants
 from DicomStuff.DicomUidProvider import DicomUidProvider
+from Taxons import Patient, Series
 from enumerations import AnatomicRegion, Gender
 
 
