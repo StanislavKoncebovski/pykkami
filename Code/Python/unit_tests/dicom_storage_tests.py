@@ -10,6 +10,12 @@ class DicomStorageTests(unittest.TestCase):
     _root_folder: str = "./DicomFiles"
     _storageManager = BasicDicomStorage()
 
+    def setUp(self) -> None:
+        try:
+            self._storageManager.initialize(self._root_folder)
+        except OSError:
+            self.fail("Creation of root folder failed")
+
     def tearDown(self):
         shutil.rmtree(self._root_folder, ignore_errors=True)
 
