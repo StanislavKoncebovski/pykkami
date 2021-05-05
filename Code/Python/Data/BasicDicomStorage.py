@@ -99,7 +99,11 @@ class BasicDicomStorage(IDicomStorage):
         :param file_path: The full path to the file.
         :return: The dataset, if successful, otherwise None.
         """
-        pass
+        try:
+            dataset = dicom.read_file(file_path)
+            return dataset
+        except ValueError:
+            return None
 
     def append_images(self, series: Series) -> list[str]:
         """
@@ -108,4 +112,18 @@ class BasicDicomStorage(IDicomStorage):
         :return: List of Instance UID's for which images could not be appended.
                  If this list was empty, the operation completely succeeded.
         """
-        pass
+        series._instances.clear()
+
+        errors = []
+
+        for instance_uid in series._instances.keys():
+            file_path = ""  # TODO: get the file path from the database
+            dataset = self.get_dataset(file_path)
+
+            if dataset is not None:
+                series._instances[instance_uid].dicom_dataset = dataset
+            else:
+                errors.append(instance_uid)
+
+        return errors
+
