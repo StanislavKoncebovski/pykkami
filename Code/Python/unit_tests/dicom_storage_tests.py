@@ -38,12 +38,12 @@ class DicomStorageTests(unittest.TestCase):
         dataset = dicom.read_file(file_name)
         self._storageManager.store_dataset(dataset)
 
-        patient_id = dataset.data_element("PatientID")
-        study_uid = dataset.data_element("StudyUID")
-        series_uid = dataset.data_element("SeriesUID")
-        instance_uid = dataset.data_element("InstanceUID")
+        patient_id = dataset.data_element("PatientID").value
+        study_uid = dataset.data_element("StudyInstanceUID").value
+        series_uid = dataset.data_element("SeriesInstanceUID").value
+        instance_uid = dataset.data_element("SOPInstanceUID").value
 
-        path = os.path.join(self._root_folder, patient_id, study_uid, series_uid, instance_uid, ".dcm")
+        path = os.path.join(self._root_folder, patient_id, study_uid, series_uid, instance_uid) + ".dcm"
         dataset1 = dicom.read_file(path)
 
         self.assertIsNotNone(dataset1)

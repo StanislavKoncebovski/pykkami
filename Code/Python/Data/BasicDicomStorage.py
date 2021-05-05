@@ -2,6 +2,7 @@ import os.path
 import pydicom as dicom
 from Data.IDicomStorage import IDicomStorage
 from Taxons import Series
+from DicomStuff import PyDicomExtensions as PDX
 
 
 class BasicDicomStorage(IDicomStorage):
@@ -27,8 +28,10 @@ class BasicDicomStorage(IDicomStorage):
      +-Patient_N
 
     """
+
     def __init__(self):
         self._root_folder = ""
+
     # region Properties
     @property
     def root_folder(self) -> str:
@@ -37,6 +40,7 @@ class BasicDicomStorage(IDicomStorage):
         :return: The name of the root folder.
         """
         return self._root_folder
+
     # endregion
 
     def initialize(self, root_folder_: str):
@@ -52,7 +56,6 @@ class BasicDicomStorage(IDicomStorage):
         except IOError:
             pass
 
-
     def store_dataset(self, dataset: dicom.dataset):
         """
         Tries to store a DICOM dataset in the file system. The full path name to the file is
@@ -62,7 +65,33 @@ class BasicDicomStorage(IDicomStorage):
         :return: None.
         :exception: IOError if the dataset could not be stored.
         """
-        pass
+        if not PDX.is_dataset_valid(dataset):
+            raise IOError("Dataset not valid")
+
+        patient_id = dataset.data_element("PatientID")
+        study_uid = dataset.data_element("StudyInstanceUID")
+        series_uid = dataset.data_element("SeriesInstanceUID")
+        instance_uid = dataset.data_element("SOPInstanceUID")
+
+        patient_folder = os.path.join(self._root_folder, patient_id.value)
+        if not os.path.isdir(patient_folder):
+            os.mkdir(patient_folder)
+
+        study_folder = os.path.join(patient_folder, study_uid.value)
+        if not os.path.isdir(study_folder):
+            os.mkdir(study_folder)
+
+        series_folder = os.path.join(study_folder, series_uid.value)
+        if not os.path.isdir(series_folder):
+            os.mkdir(series_folder)
+
+        file_name = os.path.join(series_folder, instance_uid.value) + ".dcm"
+
+        try:
+            dataset.save_as(file_name)
+            # TODO: add file name to the database
+        except:
+            raise IOError(f"Failed to save dataset at {file_name}")
 
     def get_dataset(self, file_path: str) -> dicom.dataset:
         """
