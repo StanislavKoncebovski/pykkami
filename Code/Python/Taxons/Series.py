@@ -10,9 +10,8 @@ class Series:
     Abstraction of a series, according to DICOM.
     """
     # region Members
-    study: Study.Study = None                                                   # The study, owner of the series
     series_uid: str = None                                                      # Globally unique series UID
-
+    study: Study.Study = None                                                   # The study, owner of the series
     sop_class: str = DicomConstants.VERIFICATION_SOP_CLASS                      # SOP Class UID
     transfer_syntax: str = DicomConstants.DEFAULT_TRANSFER_SYNTAX               # Transfer syntax
     specific_character_set: list[str] = DicomConstants.DEFAULT_CHARACTER_SET    # Specific character set
@@ -24,7 +23,8 @@ class Series:
     protocol_name: str = ""                                                     # Name of the acquisition protocol
     spacing_between_slices: float = 0.0                                         # Spacing between slices
     pixel_spacing: DataTypes.PixelSpacing = (0, 0)                              # Pixel spacing: mm/pix: (rows, columns)
-    image_orientation_patient: DataTypes.Vector3DPair = [(1, 0, 0), (0, 1, 0)]  # DICOM image orientation in patient vector pair
+    image_orientation_patient: DataTypes.Vector3DPair = [(1, 0, 0),
+                                                         (0, 1, 0)]  # DICOM image orientation in patient vector pair
     # endregion
 
     # region Protected members
