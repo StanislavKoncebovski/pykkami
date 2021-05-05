@@ -4,7 +4,6 @@ import random
 from datetime import datetime, date, timedelta
 
 
-from Taxons.Instance import Instance
 from Taxons.Patient import Patient
 from Taxons.Study import Study
 from Taxons.Series import Series
@@ -63,6 +62,7 @@ def create_study() -> Study:
 
     return study
 
+
 def create_series() -> Series:
     fake = Faker()
 
@@ -77,6 +77,7 @@ def create_series() -> Series:
     series.spacing_between_slices = random.randint(100, 500) / 100
 
     return series
+
 
 class TaxonManagementTests(unittest.TestCase):
     def test_creation_of_patient_succeeds(self):

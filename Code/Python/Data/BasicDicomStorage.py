@@ -1,7 +1,7 @@
 import os.path
 import pydicom as dicom
 from Data.IDicomStorage import IDicomStorage
-from Taxons.Series import Series, Instance
+from Taxons import Series
 
 
 class BasicDicomStorage(IDicomStorage):

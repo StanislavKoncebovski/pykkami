@@ -1,6 +1,6 @@
 import pydicom as dicom
 import DataTypes
-from Taxons.Series import Series
+from Taxons import Series
 from DicomStuff.DicomUidProvider import DicomUidProvider
 
 

@@ -6,10 +6,9 @@ from Data.BasicDicomStorage import BasicDicomStorage
 
 
 class DicomStorageTests(unittest.TestCase):
-    def __init__(self):
-        super().__init__()
-        self._root_folder = "./Dicom_Storage"
-        self._storageManager = BasicDicomStorage()
+
+    _root_folder: str = "./DicomFiles"
+    _storageManager = BasicDicomStorage()
 
     def tearDown(self):
         shutil.rmtree(self._root_folder, ignore_errors=True)
