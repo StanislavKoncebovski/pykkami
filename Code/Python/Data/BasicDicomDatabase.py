@@ -1,8 +1,8 @@
 from Data.IDicomDatabase import IDicomDatabase
 import sqlite3
 from sqlite3 import Error
-
-from Taxons import Patient
+from datetime import date
+from Taxons import Patient, Study, Series, Instance
 
 
 class BasicDicomDatabase(IDicomDatabase):
@@ -30,11 +30,11 @@ class BasicDicomDatabase(IDicomDatabase):
         `patient_id`					        VARCHAR(64),
         `study_datetime`				        TIME,
         `referring_physician_name`		        VARCHAR(128),
-        `institution:name`                      VARCHAR(128),
+        `institution_name`                      VARCHAR(128),
         `accession_number`				        VARCHAR(32),
         `study_id`						        VARCHAR(64),
         `study_description`				        TEXT,
-        `anatomic_region`                       VARCHAR(16)
+        `anatomic_region`                       VARCHAR(16),
         PRIMARY KEY(study_uid)
         );
         """
@@ -243,11 +243,11 @@ class BasicDicomDatabase(IDicomDatabase):
 
     def _get_patient(self, fetched: dict) -> Patient:
         try:
-            patient = Patient()
+            patient = Patient.Patient()
             patient.patient_id = fetched["patient_id"]
-            patient.patient_name = fetched["patient_name"]
-            patient.patient_date_of_birth = fetched["patient_date_of_birth"]
-            patient.patient_gender = fetched["patient_gender"]
+            patient.name = fetched["patient_name"]
+            patient.date_of_birth = fetched["patient_date_of_birth"]
+            patient.gender = fetched["patient_gender"]
 
             return patient
         except Error as e:

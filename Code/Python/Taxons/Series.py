@@ -11,7 +11,7 @@ class Series:
     """
     # region Members
     series_uid: str = None                                                      # Globally unique series UID
-    study: Study.Study = None                                                   # The study, owner of the series
+    study: Study = None                                                   # The study, owner of the series
     sop_class: str = DicomConstants.VERIFICATION_SOP_CLASS                      # SOP Class UID
     transfer_syntax: str = DicomConstants.DEFAULT_TRANSFER_SYNTAX               # Transfer syntax
     specific_character_set: list[str] = DicomConstants.DEFAULT_CHARACTER_SET    # Specific character set
