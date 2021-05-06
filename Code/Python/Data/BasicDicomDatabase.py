@@ -3,6 +3,7 @@ import sqlite3
 from sqlite3 import Error
 from datetime import date
 from Taxons import Patient, Study, Series, Instance
+from enumerations import Gender
 
 
 class BasicDicomDatabase(IDicomDatabase):
@@ -267,8 +268,8 @@ class BasicDicomDatabase(IDicomDatabase):
             patient = Patient.Patient()
             patient.patient_id = fetched["patient_id"]
             patient.name = fetched["patient_name"]
-            patient.date_of_birth = fetched["patient_date_of_birth"]
-            patient.gender = fetched["patient_gender"]
+            patient.date_of_birth = date.fromisoformat(fetched["patient_date_of_birth"])
+            patient.gender = Gender[fetched["patient_gender"].replace("Gender.", "")]
 
             return patient
         except Error as e:
