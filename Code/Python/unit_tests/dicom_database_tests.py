@@ -78,3 +78,29 @@ class DicomDataBaseTests(unittest.TestCase):
 
         for fetch in fetched:
             print(fetch)
+
+    def test_deletion_of_patient_succeeds(self):
+        patients = [create_patient() for i in range(10)]
+
+        for patient in patients:
+            self._database.insert_patient(patient)
+
+        self._database.delete_patient(patient_id=patients[0].patient_id)
+
+        fetched = self._database.select_all_patients()
+
+        self.assertEqual(9, len(fetched))
+
+    def test_updating_patient_succeeds(self):
+        patient = create_patient()
+        patient.name = "Aardvark^Aaron"
+        patient.date_of_birth = date(1999, 9, 19)
+        patient.gender = Gender.Other
+        
+        self._database.update_patient(patient)
+        patient1 = self._database.select_patient(patient.patient_id)
+
+        self.assertEqual(patient.patient_id, patient1.patient_id)
+        self.assertEqual(patient1.name, "Aardvark^Aaron")
+        self.assertEqual(patient1.date_of_birth, date(1999, 9, 19))
+        self.assertEqual(patient1.gender, Gender.Other)

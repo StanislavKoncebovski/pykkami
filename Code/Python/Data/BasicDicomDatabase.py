@@ -142,7 +142,11 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: None.
         :exception: KeyError, if the PatientID was not present.
         """
-        pass
+        try:
+            self.delete_patient(patient.patient_id)
+            self.insert_patient(patient)
+        except Error as e:
+            raise e
 
     def delete_patient(self, patient_id: str):
         """
@@ -151,7 +155,19 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: None.
         :exception: KeyError, if the PatientID was not present.
         """
-        pass
+        sql = f"DELETE FROM {self._table_patient} WHERE `patient_id` = '{patient_id}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+
+            if cursor.lastrowid < 0:
+                raise ValueError("deletion of patient failed")
+
+        except Error as e:
+            raise e
 
     def select_patient(self, patient_id: str) -> Patient:
         """
@@ -179,26 +195,8 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: A list of patients with the names fulfilling the pattern. An empty list if none were found.
         """
         sql = f"SELECT * FROM {self._table_patient} WHERE `patient_name` LIKE '%{name_pattern}%'"
+        return self._select_patients(sql)
 
-        try:
-            # assure return data as dictionary:
-            self._connection.row_factory = sqlite3.Row
-            cursor = self._connection.cursor()
-            cursor.execute(sql)
-            self._connection.commit()
-            fetched = cursor.fetchall()
-
-            result = []
-
-            for fetch in fetched:
-                patient = self._get_patient(fetch)
-
-                if patient is not None:
-                    result.append(patient)
-
-            return result
-        except ValueError:
-            return []
 
     def select_patients_by_date_of_birth(self, dob_from: date, dob_to: date) -> list[Patient]:
         """
@@ -208,26 +206,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: A list of patients with the dates of birth within the interval.
         """
         sql = f"SELECT * FROM {self._table_patient} WHERE `patient_date_of_birth` >= '{dob_from}' AND `patient_date_of_birth` <= '{dob_to}'"
-
-        try:
-            # assure return data as dictionary:
-            self._connection.row_factory = sqlite3.Row
-            cursor = self._connection.cursor()
-            cursor.execute(sql)
-            self._connection.commit()
-            fetched = cursor.fetchall()
-
-            result = []
-
-            for fetch in fetched:
-                patient = self._get_patient(fetch)
-
-                if patient is not None:
-                    result.append(patient)
-
-            return result
-        except ValueError:
-            return []
+        return self._select_patients(sql)
 
     def select_all_patients(self) -> list[Patient]:
         """
@@ -235,26 +214,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: The list of all patients.
         """
         sql = f"SELECT * FROM {self._table_patient}"
-
-        try:
-            # assure return data as dictionary:
-            self._connection.row_factory = sqlite3.Row
-            cursor = self._connection.cursor()
-            cursor.execute(sql)
-            self._connection.commit()
-            fetched = cursor.fetchall()
-
-            result = []
-
-            for fetch in fetched:
-                patient = self._get_patient(fetch)
-
-                if patient is not None:
-                    result.append(patient)
-
-            return result
-        except ValueError:
-            return []
+        return self._select_patients(sql)
 
     def select_patients_by_limit(self, limit: int) -> list[Patient]:
         """
@@ -263,26 +223,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: The list of all patients selected.
         """
         sql = f"SELECT * FROM {self._table_patient} LIMIT {limit}"
-
-        try:
-            # assure return data as dictionary:
-            self._connection.row_factory = sqlite3.Row
-            cursor = self._connection.cursor()
-            cursor.execute(sql)
-            self._connection.commit()
-            fetched = cursor.fetchall()
-
-            result = []
-
-            for fetch in fetched:
-                patient = self._get_patient(fetch)
-
-                if patient is not None:
-                    result.append(patient)
-
-            return result
-        except ValueError:
-            return []
+        return self._select_patients(sql)
     # endregion
 
     # region Protected Auxiliary
@@ -332,5 +273,26 @@ class BasicDicomDatabase(IDicomDatabase):
             return patient
         except Error as e:
             return None
+
+    def _select_patients(self, sql: str):
+        try:
+            # assure return data as dictionary:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+            fetched = cursor.fetchall()
+
+            result = []
+
+            for fetch in fetched:
+                patient = self._get_patient(fetch)
+
+                if patient is not None:
+                    result.append(patient)
+
+            return result
+        except ValueError:
+            return []
     # endregion
 
