@@ -1,5 +1,6 @@
 import unittest
 from unit_tests.taxon_creation import *
+
 from Data.BasicDicomDatabase import BasicDicomDatabase
 
 
@@ -21,3 +22,59 @@ class DicomDataBaseTests(unittest.TestCase):
         patient1 = self._database.select_patient(patient.patient_id)
 
         self.assertIsNotNone(patient1)
+
+    def test_insertion_of_many_patients_NAME_PATTERN_succeeds(self):
+        patients = [create_patient() for i in range(6)]
+
+        patients[0].name = "Aardvark^Aaron"
+        patients[1].name = "Aardvark^Berta"
+        patients[5].name = "Aardberg^Zenobia"
+
+        for patient in patients:
+            self._database.insert_patient(patient)
+
+        fetched = self._database.select_patients_by_name_pattern("Aar")
+
+        self.assertEqual(3, len(fetched))
+
+    def test_insertion_of_many_patients_DOB_succeeds(self):
+        patients = [create_patient() for i in range(6)]
+
+        patients[0].date_of_birth = date(1930, 12, 10)
+        patients[1].date_of_birth = date(1930, 12, 11)
+        patients[5].date_of_birth = date(1930, 12, 12)
+
+        for patient in patients:
+            self._database.insert_patient(patient)
+
+        dob_from = date(1930, 12, 1)
+        dob_to = date(1930, 12, 15)
+        fetched = self._database.select_patients_by_date_of_birth(dob_from, dob_to)
+
+        self.assertEqual(3, len(fetched))
+
+    def test_insertion_of_many_patients_ALL_succeeds(self):
+        patients = [create_patient() for i in range(16)]
+
+        for patient in patients:
+            self._database.insert_patient(patient)
+
+        fetched = self._database.select_all_patients()
+
+        self.assertEqual(16, len(fetched))
+
+        for fetch in fetched:
+            print(fetch)
+
+    def test_insertion_of_many_patients_LIMIT_succeeds(self):
+        patients = [create_patient() for i in range(16)]
+
+        for patient in patients:
+            self._database.insert_patient(patient)
+
+        fetched = self._database.select_patients_by_limit(10)
+
+        self.assertEqual(10, len(fetched))
+
+        for fetch in fetched:
+            print(fetch)
