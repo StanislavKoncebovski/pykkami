@@ -1,9 +1,9 @@
 from Data.IDicomDatabase import IDicomDatabase
 import sqlite3
 from sqlite3 import Error
-from datetime import date
+from datetime import date, datetime
 from Taxons import Patient, Study, Series, Instance
-from enumerations import Gender
+from enumerations import Gender, AnatomicRegion
 
 
 class BasicDicomDatabase(IDicomDatabase):
@@ -227,6 +227,113 @@ class BasicDicomDatabase(IDicomDatabase):
         return self._select_patients(sql)
     # endregion
 
+    # region Study Management
+    def insert_study(self, study: Study):
+        """
+        Tries to insert a study.
+        :param study: The study to insert. Must be valid (i.e. have a valid Patient reference).
+        :return: None.
+        :exception: KeyError if the studyUID was already present or if the patient is not yet in the DB.
+        """
+        sql = f"INSERT INTO " \
+              f"{self._table_study} " \
+              f"VALUES (" \
+              f"'{study.study_uid}', " \
+              f"'{study.patient.patient_id}', " \
+              f"'{study.study_date_time}', " \
+              f"'{study.referring_physician_name}'," \
+              f"'{study.institution_name}',"\
+              f"'{study.accession_number}'," \
+              f"'{study.study_id}'," \
+              f"'{study.study_description}'," \
+              f"'{study.anatomic_region}'" \
+              ")"
+
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+        except Error as e:
+            raise e
+
+    def update_study(self, study: Study):
+        """
+        Tries to update a study.
+        :param study: An instance of the Study class with the StudyUID of the study to update (and some new data).
+        :return: None.
+        :exception: KeyError, if the StudyUID was not present.
+        """
+        try:
+            self.delete_study(study.study_uid)
+            self.insert_study(study)
+        except Error as e:
+            raise e
+
+    def delete_study(self, study_uid: str):
+        """
+        Tries to delete a study.
+        :param study_uid: Tue UID of the study to delete.
+        :return: None.
+        :exception: KeyError, if the StudyUID was not present.
+        """
+        sql = f"DELETE FROM {self._table_study} WHERE `study_uid` = '{study_uid}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+
+            if cursor.lastrowid < 0:
+                raise ValueError("deletion of study failed")
+
+        except Error as e:
+            raise e
+
+    def select_study(self, study_uid: str) -> Study:
+        """
+        Selects a study by StudyUID.
+        :param study_uid: The StudyUID of the study to select.
+        :return: The study, if found, otherwise None
+        """
+        sql = f"SELECT * FROM {self._table_study} WHERE `patient_id` = '{study_uid}'"
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+            fetched = cursor.fetchone()
+
+            return self._get_study(fetched)
+        except Error as e:
+            return None
+
+    def select_studies_to_patient(self, patient_id: str) -> list[Study]:
+        """
+        Selects the studies of a patient.
+        :param patient_id: The PatientID of the patient.
+        :return: A list of studies of the patient.
+        :exception: KeyError, if the PatientID was not present.
+        """
+        sql = f"SELECT * FROM {self._table_study} WHERE `patient_id` = '{patient_id}'"
+
+        self._connection.row_factory = sqlite3.Row
+        cursor = self._connection.cursor()
+        cursor.execute(sql)
+        self._connection.commit()
+        fetched = cursor.fetchall()
+
+        result = []
+
+        for fetch in fetched:
+            study = self._get_study(fetch)
+
+            if study is not None:
+                result.append(study)
+
+        return result
+    # endregion
+
     # region Protected Auxiliary
     def create_tables(self) -> bool:
         result = True
@@ -275,9 +382,24 @@ class BasicDicomDatabase(IDicomDatabase):
         except Error as e:
             return None
 
+    def _get_study(self, fetched: dict) -> Study:
+        try:
+            study = Study()
+            study.study_uid = fetched["study_uid"]
+            study.study_date_time = datetime.fromisoformat("study_datetime")
+            study.referring_physician_name = fetched["referring_physician_name"]
+            study.institution_name = fetched["institution_name"]
+            study.accession_number = fetched["accession_number"]
+            study.study_id = fetched["study_id"]
+            study.study_description = fetched["study_description"]
+            study.anatomic_region = AnatomicRegion[fetched["anatomic_region"].replace("AnatomicRegion.", "")]
+
+            return study
+        except Error as e:
+            return None
+
     def _select_patients(self, sql: str):
         try:
-            # assure return data as dictionary:
             self._connection.row_factory = sqlite3.Row
             cursor = self._connection.cursor()
             cursor.execute(sql)
