@@ -394,7 +394,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :return: None.
         :exception: KeyError, if the SeriesUID was not present.
         """
-        sql = f"DELETE FROM {self._table_series} WHERE `study_uid` = '{series_uid}'"
+        sql = f"DELETE FROM {self._table_series} WHERE `series_uid` = '{series_uid}'"
 
         try:
             self._connection.row_factory = sqlite3.Row
@@ -449,6 +449,131 @@ class BasicDicomDatabase(IDicomDatabase):
 
             if series is not None:
                 result.append(series)
+
+        return result
+    # endregion
+
+    # region Instance Management
+    def insert_instance(self, instance: Instance):
+        """
+        Tries to insert an instance.
+        :param instance: The instance to insert. Must be valid (i.e. have a valid Series reference).
+        :return: None.
+        :exception: KeyError if the InstanceUID was already present or if the series is not yet in the DB.
+        """
+        sql = f"INSERT INTO {self._table_instance} " \
+              f"VALUES(" \
+              f"'{instance.instance_uid}', " \
+              f"'{instance.series.series_uid}', " \
+              f"{instance.instance_number}," \
+              f"{instance.instance_position_patient.X}," \
+              f"{instance.instance_position_patient.Y},"\
+              f"{instance.instance_position_patient.Z}," \
+              f")"
+
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+        except Error as e:
+            raise e
+
+    def update_instance(self, instance: Instance):
+        """
+        Tries to update an instance.
+        :param instance: An instance of the Instance class with the InstanceUID of the instance to update (and some new data).
+        :return: None.
+        :exception: KeyError, if the InstanceUID was not present.
+        """
+        try:
+            self.delete_instance(instance.instance_uid)
+            self.insert_instance(instance)
+        except Error as e:
+            raise e
+
+    def delete_instance(self, instance_uid: str):
+        """
+        Tries to delete an instance.
+        :param instance_uid: Tue UID of the instance to delete.
+        :return: None.
+        :exception: KeyError, if the InstanceUID was not present.
+        """
+        sql = f"DELETE FROM {self._table_instance} WHERE `instance_uid` = '{instance_uid}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+
+            if cursor.lastrowid < 0:
+                raise ValueError("deletion of study failed")
+
+        except Error as e:
+            raise e
+
+    def delete_instances_of_series(self, series_uid: str):
+        """
+        Deletes all instances of a series.
+        :param series_uid: The UID of the series whose instances to delete.
+        :return: None.
+        :exception: KeyError, if the SeriesUID was not present.
+        """
+        sql = f"DELETE FROM {self._table_instance} WHERE `series_uid` = '{series_uid}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+
+            if cursor.lastrowid < 0:
+                raise ValueError("deletion of study failed")
+
+        except Error as e:
+            raise e
+
+    def select_instance(self, instance_uid: str) -> Instance:
+        """
+        Selects an instance by InstanceUID.
+        :param instance_uid: The InstanceUID of the instance to select.
+        :return: The instance, if found, otherwise None.
+        """
+        sql = f"SELECT * FROM {self._table_instance} WHERE `instance_id` = '{instance_uid}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+            fetched = cursor.fetchone()
+
+            return self._get_instance(fetched)
+        except Error as e:
+            return None
+
+    def select_instances_to_series(self, series_uid: str) -> list[Instance]:
+        """
+        Selects the instances of a series.
+        :param series_uid: The SeriesUID of the series.
+        :return: A list of instance of the series.
+        :exception: KeyError, if the SeriesUID was not present.
+        """
+        sql = f"SELECT * FROM {self._table_instance} WHERE `series_uid` = '{series_uid}'"
+
+        self._connection.row_factory = sqlite3.Row
+        cursor = self._connection.cursor()
+        cursor.execute(sql)
+        self._connection.commit()
+        fetched = cursor.fetchall()
+
+        result = []
+
+        for fetch in fetched:
+            instance = self._get_instance(fetch)
+
+            if instance is not None:
+                result.append(instance)
 
         return result
     # endregion
@@ -551,6 +676,23 @@ class BasicDicomDatabase(IDicomDatabase):
             series.image_orientation_patient = (vp_rows, vp_columns)
 
             return series
+        except Error as e:
+            return None
+
+    def _get_instance(self, fetched: dict) -> Instance:
+        try:
+            instance = Instance()
+
+            instance.instance_uid = fetched["instance_uid"]
+            instance.instance_number = int(fetched["instance_number"])
+
+            x = float(fetched["image_position_patient_x"])
+            y = float(fetched["image_position_patient_z"])
+            z = float(fetched["image_position_patient_z"])
+
+            instance.instance_position_patient = (x, y, z)
+
+            return instance
         except Error as e:
             return None
 
