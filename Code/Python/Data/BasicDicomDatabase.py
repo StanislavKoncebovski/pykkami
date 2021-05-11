@@ -3,7 +3,7 @@ import sqlite3
 from sqlite3 import Error
 from datetime import date, datetime
 from Taxons import Patient, Study, Series, Instance
-from enumerations import Gender, AnatomicRegion
+from enumerations import Gender, AnatomicRegion, Modality
 
 
 class BasicDicomDatabase(IDicomDatabase):
@@ -334,6 +334,125 @@ class BasicDicomDatabase(IDicomDatabase):
         return result
     # endregion
 
+    # region Series Management
+    def insert_series(self, series: Series):
+        """
+        Tries to insert a series.
+        :param series: The series to insert. Must be valid (i.e. have a valid Study reference).
+        :return: None.
+        :exception: KeyError if the SeriesUID was already present or if the study is not yet in the DB.
+        """
+        charsets = str.join('\\', series.specific_character_set)
+        sql = f"INSERT INTO {self._table_series} " \
+              f"VALUES(" \
+              f"'{series.series_uid}', " \
+              f"'{series.study.study_uid}', " \
+              f"{series.sop_class}', " \
+              f"'{series.transfer_syntax}'," \
+              f"'{charsets}', " \
+              f"'{series.series_datetime}', " \
+              f"'{series.modality}', " \
+              f"{series.series_number}, " \
+              f"'{series.series_description}', " \
+              f"'{series.sequence_name}', " \
+              f"'{series.protocol_name}', " \
+              f"{series.spacing_between_slices}, " \
+              f"{series.pixel_spacing.Row}, " \
+              f"{series.pixel_spacing.Column}, " \
+              f"{series.image_orientation_patient.Rows.X}, " \
+              f"{series.image_orientation_patient.Rows.Y}, " \
+              f"{series.image_orientation_patient.Rows.Z} " \
+              f"{series.image_orientation_patient.Columns.X}, " \
+              f"{series.image_orientation_patient.Columns.Y}, " \
+              f"{series.image_orientation_patient.Columns.Z} " \
+              f")"
+
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+        except Error as e:
+            raise e
+
+    def update_series(self, series: Series):
+        """
+        Tries to update a study.
+        :param series: An instance of the Series class with the SeriesUID of the series to update (and some new data).
+        :return: None.
+        :exception: KeyError, if the SeriesUID was not present.
+        """
+        try:
+            self.delete_series(series.series_uid)
+            self.insert_study(series)
+        except Error as e:
+            raise e
+
+    def delete_series(self, series_uid: str):
+        """
+        Tries to delete a series.
+        :param series_uid: Tue UID of the series to delete.
+        :return: None.
+        :exception: KeyError, if the SeriesUID was not present.
+        """
+        sql = f"DELETE FROM {self._table_series} WHERE `study_uid` = '{series_uid}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+
+            if cursor.lastrowid < 0:
+                raise ValueError("deletion of study failed")
+
+        except Error as e:
+            raise e
+
+    def select_series(self, series_uid: str) -> Series:
+        """
+        Selects a series by SeriesUID.
+        :param series_uid: The SeriesUID of the series to select.
+        :return: The series, if found, otherwise None.
+        """
+        sql = f"SELECT * FROM {self._table_series} WHERE `patient_id` = '{series_uid}'"
+
+        try:
+            self._connection.row_factory = sqlite3.Row
+            cursor = self._connection.cursor()
+            cursor.execute(sql)
+            self._connection.commit()
+            fetched = cursor.fetchone()
+
+            return self._get_series(fetched)
+        except Error as e:
+            return None
+
+    def select_series_to_study(self, study_uid: str) -> list[Series]:
+        """
+        Selects the series of a study.
+        :param study_uid: The StudyUID of the study.
+        :return: A list of series of the study.
+        :exception: KeyError, if the StudyUID was not present.
+        """
+        sql = f"SELECT * FROM {self._table_series} WHERE `study_uid` = '{study_uid}'"
+
+        self._connection.row_factory = sqlite3.Row
+        cursor = self._connection.cursor()
+        cursor.execute(sql)
+        self._connection.commit()
+        fetched = cursor.fetchall()
+
+        result = []
+
+        for fetch in fetched:
+            series = self._get_series(fetch)
+
+            if series is not None:
+                result.append(series)
+
+        return result
+    # endregion
+
     # region Protected Auxiliary
     def create_tables(self) -> bool:
         result = True
@@ -386,7 +505,7 @@ class BasicDicomDatabase(IDicomDatabase):
         try:
             study = Study()
             study.study_uid = fetched["study_uid"]
-            study.study_date_time = datetime.fromisoformat("study_datetime")
+            study.study_date_time = datetime.fromisoformat(fetched["study_datetime"])
             study.referring_physician_name = fetched["referring_physician_name"]
             study.institution_name = fetched["institution_name"]
             study.accession_number = fetched["accession_number"]
@@ -395,6 +514,43 @@ class BasicDicomDatabase(IDicomDatabase):
             study.anatomic_region = AnatomicRegion[fetched["anatomic_region"].replace("AnatomicRegion.", "")]
 
             return study
+        except Error as e:
+            return None
+
+    def _get_series(self, fetched: dict) -> Series:
+        try:
+            series = Series()
+            series.series_uid = fetched["series_uid"]
+            series.sop_class = fetched["sop_class"]
+            series.transfer_syntax = fetched["transfer_syntax"]
+            charsets = fetched["specific_character_set"]
+            series.specific_character_set = charsets.split("\\")
+            series.series_datetime = datetime.fromisoformat(fetched["series_datetime"])
+            series.modality = Modality[fetched["modality"].replace("Modality.", "")]
+            series.series_number = int(fetched["series_number"])
+            series.series_description = fetched["series_description"]
+            series.sequence_name = fetched["sequence_name"]
+            series.protocol_name = fetched["protocol_name"]
+            series.spacing_between_slices = float(fetched["spacing_between_slices"])
+            x = float(fetched["pixel_spacing_x"])
+            y = float(fetched["pixel_spacing_y"])
+            series.pixel_spacing = (x, y)
+
+            x = float(fetched["image_orientation_patient_rows_x"])
+            y = float(fetched["image_orientation_patient_rows_y"])
+            z = float(fetched["image_orientation_patient_rows_z"])
+
+            vp_rows = (x, y, z)
+
+            x = float(fetched["image_orientation_patient_columns_x"])
+            y = float(fetched["image_orientation_patient_columns_y"])
+            z = float(fetched["image_orientation_patient_columns_z"])
+
+            vp_columns = (x, y, z)
+
+            series.image_orientation_patient = (vp_rows, vp_columns)
+
+            return series
         except Error as e:
             return None
 
