@@ -1,6 +1,6 @@
 import unittest
 from unit_tests.taxon_creation import *
-
+from DicomStuff.DicomUidProvider import DicomUidProvider
 from Data.BasicDicomDatabase import BasicDicomDatabase
 
 
@@ -15,6 +15,7 @@ class DicomDataBaseTests(unittest.TestCase):
     def tearDown(self):
         self._database.close()
 
+    # region Patient Management Tests
     def test_insertion_of_patient_NEW_PATIENT_succeeds(self):
         patient = create_patient()
         self._database.insert_patient(patient)
@@ -104,3 +105,126 @@ class DicomDataBaseTests(unittest.TestCase):
         self.assertEqual(patient1.name, "Aardvark^Aaron")
         self.assertEqual(patient1.date_of_birth, date(1999, 9, 19))
         self.assertEqual(patient1.gender, Gender.Other)
+    # endregion
+
+    # region Study management tests
+    def test_insertion_of_study_NEW_STUDY_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        study1 = self._database.select_study(study.study_uid)
+        self.assertIsNotNone(study1)
+
+    def test_selection_of_study_STUDY_EXISTS_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        study1 = self._database.select_study(study.study_uid)
+        self.assertIsNotNone(study1)
+
+    def test_selection_of_study_INVALID_UID_returns_None(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        study_uid = study.study_uid[:-1]
+        study1 = self._database.select_study(study_uid)
+        self.assertIsNone(study1)
+
+    def test_selection_of_studies_to_patient_VALID_PATIENT_succeeds(self):
+        patient = create_patient()
+
+        number_of_studies = 4
+        studies = [patient.add_study(create_study()) for i in range(number_of_studies)]
+
+        for study_uid in patient._studies:
+            study = patient._studies[study_uid]
+            patient.add_study(study)
+            self._database.insert_study(study)
+
+        studies1 = self._database.select_studies_to_patient(patient.patient_id)
+
+        self.assertEqual(number_of_studies, len(studies1))
+
+    def test_selection_of_studies_to_patient_INVALID_PATIENT_returns_empty_list(self):
+        patient = create_patient()
+
+        number_of_studies = 4
+        studies = [patient.add_study(create_study()) for i in range(number_of_studies)]
+
+        for study_uid in patient._studies:
+            study = patient._studies[study_uid]
+            patient.add_study(study)
+            self._database.insert_study(study)
+
+        patient_id = patient.patient_id[:-1]
+
+        studies1 = self._database.select_studies_to_patient(patient_id)
+
+        self.assertEqual(0, len(studies1))
+
+    def test_deletion_of_study_STUDY_EXISTS_succeeds(self):
+        patient = create_patient()
+
+        number_of_studies = 4
+        studies = [patient.add_study(create_study()) for i in range(number_of_studies)]
+
+        for study_uid in patient._studies:
+            study = patient._studies[study_uid]
+            patient.add_study(study)
+            self._database.insert_study(study)
+
+        study_uid = list(patient._studies.keys())[1]
+
+        self._database.delete_study(study_uid)
+
+        studies1 = self._database.select_studies_to_patient(patient.patient_id)
+
+        self.assertEqual(number_of_studies - 1, len(studies1))
+
+    def test_deletion_of_study_STUDY_NOT_EXISTS_changes_nothing(self):
+        patient = create_patient()
+
+        number_of_studies = 4
+        studies = [patient.add_study(create_study()) for i in range(number_of_studies)]
+
+        for study_uid in patient._studies:
+            study = patient._studies[study_uid]
+            patient.add_study(study)
+            self._database.insert_study(study)
+
+        study_uid = DicomUidProvider.create_study_uid()
+
+        self._database.delete_study(study_uid)
+
+        studies1 = self._database.select_studies_to_patient(patient.patient_id)
+
+        self.assertEqual(number_of_studies, len(studies1))
+
+    def test_updating_study_suceeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        physician = study.referring_physician_name
+
+        study.referring_physician_name = create_dicom_name_()
+
+        self._database.update_study(study)
+
+        study1 = self._database.select_study(study.study_uid)
+
+        self.assertNotEqual(physician, study1.referring_physician_name)
+
+    # endregion

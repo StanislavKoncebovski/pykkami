@@ -296,7 +296,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :param study_uid: The StudyUID of the study to select.
         :return: The study, if found, otherwise None
         """
-        sql = f"SELECT * FROM {self._table_study} WHERE `patient_id` = '{study_uid}'"
+        sql = f"SELECT * FROM {self._table_study} WHERE `study_uid` = '{study_uid}'"
         try:
             self._connection.row_factory = sqlite3.Row
             cursor = self._connection.cursor()
@@ -627,8 +627,11 @@ class BasicDicomDatabase(IDicomDatabase):
             return None
 
     def _get_study(self, fetched: dict) -> Study:
+        if fetched is None:
+            return None
+
         try:
-            study = Study()
+            study = Study.Study()
             study.study_uid = fetched["study_uid"]
             study.study_date_time = datetime.fromisoformat(fetched["study_datetime"])
             study.referring_physician_name = fetched["referring_physician_name"]
