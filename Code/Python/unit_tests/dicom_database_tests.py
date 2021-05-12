@@ -226,5 +226,165 @@ class DicomDataBaseTests(unittest.TestCase):
         study1 = self._database.select_study(study.study_uid)
 
         self.assertNotEqual(physician, study1.referring_physician_name)
+    # endregion
+
+    # region Series Management Tests
+    def test_insertion_of_series_NEW_SERIES_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        series1 = self._database.select_series(series.series_uid)
+
+        self.assertIsNotNone(series1)
+
+    def test_selection_of_series_SERIES_EXISTS_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        series1 = self._database.select_series(series.series_uid)
+
+        self.assertIsNotNone(series1)
+
+    def test_selection_of_series_INVALID_UID_returns_None(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        series_uid = series.series_uid[:-1]
+        series1 = self._database.select_series(series_uid)
+
+        self.assertIsNone(series1)
+
+    def test_selection_of_seriez_to_study_VALID_STUDY_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        number_of_series = 4
+
+        for i in range(number_of_series):
+            series = create_series()
+            study.add_series(series)
+            self._database.insert_series(series)
+
+        seriez = self._database.select_series_to_study(study.study_uid)
+
+        self.assertIsNotNone(seriez)
+        self.assertEqual(number_of_series, len(study._seriez))
+
+
+    def test_selection_of_seriez_to_study_INVALID_STUDY_returns_empty_list(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        number_of_series = 4
+
+        for i in range(number_of_series):
+            series = create_series()
+            study.add_series(series)
+            self._database.insert_series(series)
+
+        study_uid = study.study_uid[:-1]
+        seriez = self._database.select_series_to_study(study_uid)
+
+        self.assertIsNotNone(seriez)
+        self.assertEqual(0, len(seriez))
+
+    def test_deletion_of_series_SERIES_EXISTS_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        number_of_series = 4
+
+        for i in range(number_of_series):
+            series = create_series()
+            study.add_series(series)
+            self._database.insert_series(series)
+
+        series_uid = list(study._seriez.keys())[0]
+
+        self._database.delete_series(series_uid)
+
+        seriez = self._database.select_series_to_study(study.study_uid)
+
+        self.assertIsNotNone(seriez)
+        self.assertEqual(number_of_series - 1, len(seriez))
+
+    def test_deletion_of_series_SERIES_NOT_EXISTS_changes_nothing(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+
+        number_of_series = 4
+
+        for i in range(number_of_series):
+            series = create_series()
+            study.add_series(series)
+            self._database.insert_series(series)
+
+        series_uid = DicomUidProvider.create_series_uid()
+
+        self._database.delete_series(series_uid)
+
+        seriez = self._database.select_series_to_study(study.study_uid)
+
+        self.assertIsNotNone(seriez)
+        self.assertEqual(number_of_series, len(seriez))
+
+    def test_updating_series_suceeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        series.modality = Modality.CT
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        old_modality = series.modality
+
+        series.modality = Modality.MR
+
+        self._database.update_series(series)
+
+        series1 = self._database.select_series(series.series_uid)
+
+        self.assertNotEqual(old_modality, series1.modality)
 
     # endregion

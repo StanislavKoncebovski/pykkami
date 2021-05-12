@@ -4,6 +4,7 @@ from sqlite3 import Error
 from datetime import date, datetime
 from Taxons import Patient, Study, Series, Instance
 from enumerations import Gender, AnatomicRegion, Modality
+import DataTypes
 
 
 class BasicDicomDatabase(IDicomDatabase):
@@ -347,7 +348,7 @@ class BasicDicomDatabase(IDicomDatabase):
               f"VALUES(" \
               f"'{series.series_uid}', " \
               f"'{series.study.study_uid}', " \
-              f"{series.sop_class}', " \
+              f"'{series.sop_class}', " \
               f"'{series.transfer_syntax}'," \
               f"'{charsets}', " \
               f"'{series.series_datetime}', " \
@@ -357,14 +358,14 @@ class BasicDicomDatabase(IDicomDatabase):
               f"'{series.sequence_name}', " \
               f"'{series.protocol_name}', " \
               f"{series.spacing_between_slices}, " \
-              f"{series.pixel_spacing.Row}, " \
-              f"{series.pixel_spacing.Column}, " \
-              f"{series.image_orientation_patient.Rows.X}, " \
-              f"{series.image_orientation_patient.Rows.Y}, " \
-              f"{series.image_orientation_patient.Rows.Z} " \
-              f"{series.image_orientation_patient.Columns.X}, " \
-              f"{series.image_orientation_patient.Columns.Y}, " \
-              f"{series.image_orientation_patient.Columns.Z} " \
+              f"{series.pixel_spacing[0]}, " \
+              f"{series.pixel_spacing[1]}, " \
+              f"{series.image_orientation_patient[0][0]}, " \
+              f"{series.image_orientation_patient[0][1]}, " \
+              f"{series.image_orientation_patient[0][2]}, " \
+              f"{series.image_orientation_patient[1][0]}, " \
+              f"{series.image_orientation_patient[1][1]}, " \
+              f"{series.image_orientation_patient[1][2]} " \
               f")"
 
         try:
@@ -383,7 +384,7 @@ class BasicDicomDatabase(IDicomDatabase):
         """
         try:
             self.delete_series(series.series_uid)
-            self.insert_study(series)
+            self.insert_series(series)
         except Error as e:
             raise e
 
@@ -414,7 +415,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :param series_uid: The SeriesUID of the series to select.
         :return: The series, if found, otherwise None.
         """
-        sql = f"SELECT * FROM {self._table_series} WHERE `patient_id` = '{series_uid}'"
+        sql = f"SELECT * FROM {self._table_series} WHERE `series_uid` = '{series_uid}'"
 
         try:
             self._connection.row_factory = sqlite3.Row
@@ -646,10 +647,13 @@ class BasicDicomDatabase(IDicomDatabase):
             return None
 
     def _get_series(self, fetched: dict) -> Series:
+        if fetched is None:
+            return None
+
         try:
-            series = Series()
+            series = Series.Series()
             series.series_uid = fetched["series_uid"]
-            series.sop_class = fetched["sop_class"]
+            series.sop_class = fetched["sop_class_uid"]
             series.transfer_syntax = fetched["transfer_syntax"]
             charsets = fetched["specific_character_set"]
             series.specific_character_set = charsets.split("\\")
