@@ -9,11 +9,12 @@ class Instance:
     Abstraction of a DICOM instance.
     """
     # region Members
-    instance_uid: str = None  # Globally unique instance UID
-    series: Series = None                                           # The series, owner of the instance
-    instance_number: int = 0                                        # DICOM instance number in the series
-    instance_position_patient: DataTypes.Point3D = (0, 0, 0)        # DICOM image position in patient as a 3D vector
-    dicom_dataset: dicom.dataset = None                             # DICOM dataset.
+    instance_uid: str = None                                  # Globally unique instance UID
+    series: Series = None                                     # The series, owner of the instance
+    instance_number: int = 0                                  # DICOM instance number in the series
+    instance_position_patient: DataTypes.Point3D = (0, 0, 0)  # DICOM image position in patient as a 3D vector
+    file_name: str = ""                                       # Name of the file (full path) where the object is stored.
+    dicom_dataset: dicom.dataset = None                       # DICOM dataset.
     # endregion
 
     # region Construction
@@ -34,5 +35,5 @@ class Instance:
         String representing the instance.
         :return: The string representation.
         """
-        return f"[{self.instance_uid}] ({self.instance_number}). IPP=({self.instance_position_patient[0]}, {self.instance_position_patient[1]}, {self.instance_position_patient[2]})"
+        return f"[{self.instance_uid}] ({self.instance_number}). IPP=({self.instance_position_patient[0]}, {self.instance_position_patient[1]}, {self.instance_position_patient[2]}) @ {self.file_name})"
     # endregion

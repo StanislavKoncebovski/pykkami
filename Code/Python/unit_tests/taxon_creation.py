@@ -1,5 +1,8 @@
 import random
 from datetime import timedelta, datetime, date
+
+import DataTypes
+from Taxons.Instance import Instance
 from Taxons.Patient import Patient
 from Taxons.Study import Study
 from Taxons.Series import Series
@@ -64,7 +67,7 @@ def create_series() -> Series:
     fake = Faker()
 
     series = Series()
-    series.series_datetime  = datetime.now()
+    series.series_datetime = datetime.now()
     series.series_number = random.randint(1, 100)
     series.series_description = fake.text(42)
     series.modality = random.choice(list(Modality))
@@ -74,3 +77,27 @@ def create_series() -> Series:
     series.spacing_between_slices = random.randint(100, 500) / 100
 
     return series
+
+
+def create_instance() -> Instance:
+    fake = Faker()
+
+    instance = Instance()
+
+    instance.instance_number = random.randint(10, 100)
+
+    x = random.gauss(10, 2)
+    y = random.gauss(10, 2)
+    z = random.gauss(10, 2)
+
+    instance.instance_position_patient = DataTypes.Point3D(x, y, z)
+
+    file_name = fake.text(8)
+
+    if file_name.endswith("."):
+        file_name = file_name[:-1]
+
+    file_name = f"C:/Temp/{file_name}_{random.randint(1,99)}.dcm"
+    instance.file_name = file_name
+
+    return instance

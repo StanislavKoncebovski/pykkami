@@ -386,5 +386,78 @@ class DicomDataBaseTests(unittest.TestCase):
         series1 = self._database.select_series(series.series_uid)
 
         self.assertNotEqual(old_modality, series1.modality)
+    # endregion
 
+    # region Instance management
+    def test_insertion_of_instance_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        instance = create_instance()
+        series.add_instance(instance)
+
+        self._database.insert_instance(instance)
+
+        instance1 = self._database.select_instance(instance.instance_uid)
+        self.assertIsNotNone(instance1)
+
+        print(instance1)
+
+    def test_insertion_of_instances_for_series_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        number_of_instances = 10
+
+        for i in range(number_of_instances):
+            instance = create_instance()
+            series.add_instance(instance)
+            self._database.insert_instance(instance)
+
+        instances = self._database.select_instances_to_series(series.series_uid)
+        self.assertIsNotNone(instances)
+
+        self.assertEqual(number_of_instances, len(instances))
+
+        for instance in instances:
+            print(instance)
+
+    def test_deletion_of_instances_for_series_succeeds(self):
+        patient = create_patient()
+        study = create_study()
+        patient.add_study(study)
+        series = create_series()
+        study.add_series(series)
+
+        self._database.insert_patient(patient)
+        self._database.insert_study(study)
+        self._database.insert_series(series)
+
+        number_of_instances = 10
+
+        for i in range(number_of_instances):
+            instance = create_instance()
+            series.add_instance(instance)
+            self._database.insert_instance(instance)
+
+        self._database.delete_instances_of_series(series.series_uid)
+
+        instances = self._database.select_instances_to_series(series.series_uid)
+        self.assertIsNotNone(instances)
+
+        self.assertEqual(0, len(instances))
     # endregion

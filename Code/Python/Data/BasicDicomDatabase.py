@@ -470,6 +470,7 @@ class BasicDicomDatabase(IDicomDatabase):
               f"{instance.instance_position_patient.X}," \
               f"{instance.instance_position_patient.Y},"\
               f"{instance.instance_position_patient.Z}," \
+              f"'{instance.file_name}'" \
               f")"
 
         try:
@@ -540,7 +541,7 @@ class BasicDicomDatabase(IDicomDatabase):
         :param instance_uid: The InstanceUID of the instance to select.
         :return: The instance, if found, otherwise None.
         """
-        sql = f"SELECT * FROM {self._table_instance} WHERE `instance_id` = '{instance_uid}'"
+        sql = f"SELECT * FROM {self._table_instance} WHERE `instance_uid` = '{instance_uid}'"
 
         try:
             self._connection.row_factory = sqlite3.Row
@@ -688,7 +689,7 @@ class BasicDicomDatabase(IDicomDatabase):
 
     def _get_instance(self, fetched: dict) -> Instance:
         try:
-            instance = Instance()
+            instance = Instance.Instance()
 
             instance.instance_uid = fetched["instance_uid"]
             instance.instance_number = int(fetched["instance_number"])
@@ -698,6 +699,8 @@ class BasicDicomDatabase(IDicomDatabase):
             z = float(fetched["image_position_patient_z"])
 
             instance.instance_position_patient = (x, y, z)
+
+            instance.file_name = fetched["file_name"]
 
             return instance
         except Error as e:

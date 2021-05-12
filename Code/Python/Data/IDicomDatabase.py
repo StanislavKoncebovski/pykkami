@@ -206,7 +206,7 @@ class IDicomDatabase:
     def delete_instance(self, instance_uid: str):
         """
         Tries to delete an instance.
-        :param instance_uid: Tue UID of the instance to delete.
+        :param instance_uid: The UID of the instance to delete.
         :return: None.
         :exception: KeyError, if the InstanceUID was not present.
         """
