@@ -45,6 +45,11 @@ class Patient:
 
     # endregion
 
+    # region Validation
+    def is_valid(self) -> bool:
+        return (self.patient_id is not None) and len(self.patient_id) > 0
+    # endregion
+
     # region String representation
     def __str__(self):
         """

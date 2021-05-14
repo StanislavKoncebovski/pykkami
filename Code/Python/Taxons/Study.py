@@ -38,6 +38,14 @@ class Study:
             self.study_uid = study_uid_
     # endregion
 
+    # region Validation
+    def is_valid(self) -> bool:
+        return (self.patient is not None) \
+               and self.patient.is_valid() \
+               and (self.study_uid is not None) \
+               and (len(self.study_uid) > 0)
+    # endregion
+
     # region Management
     def add_series(self, series: Series):
         """
