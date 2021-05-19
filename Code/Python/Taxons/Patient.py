@@ -15,16 +15,14 @@ class Patient:
     gender: Gender = Gender.Unknown     # Patient's gender
     # endregion
 
-    # region Protected members
-    _studies: dict[str, Study] = {}     # Dictionary of patient's studies. Key: StudyUID; Value: the study.
-    # endregion
-
     # region Construction
     def __init__(self, patient_id_=None):
         """
         Creates an instance of Patient.
         :param patient_id_: The ID of the patient. If set to None (default), an automatic PatientID is generated.
         """
+        self._studies: dict[str, Study] = {}
+
         if patient_id_ is None or len(patient_id_) < 1:
             self.patient_id = DicomUidProvider.create_patient_id()
         else:

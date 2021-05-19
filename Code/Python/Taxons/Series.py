@@ -27,10 +27,6 @@ class Series:
                                                          (0, 1, 0)]  # DICOM image orientation in patient vector pair
     # endregion
 
-    # region Protected members
-    _instances: dict[str, Instance] = {}                                         # Dictionary of instances to the series. Key: InstanceUID; Value: the instance.
-    # endregion
-
     @property
     def instances(self):
         return self._instances
@@ -41,6 +37,7 @@ class Series:
         Creates an instance of Series.
         :param series_uid_: The UID of the series. If set to None (default), an automatic SeriesUID is generated.
         """
+        self. _instances: dict[str, Instance] = {}                            # Dictionary of instances to the series. Key: InstanceUID; Value: the instance.
         if series_uid_ is None or len(series_uid_) < 1:
             self.series_uid = DicomUidProvider.create_series_uid()
         else:

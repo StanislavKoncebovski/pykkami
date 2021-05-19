@@ -53,7 +53,7 @@ def create_study() -> Study:
 
     study = Study()
     study.study_id = f"S_{random.randint(100, 1000)}"
-    study.study_description = fake.text(42)
+    study.study_description = fake.text(42)[:-1]
     study.study_date_time = datetime.now()
     study.accession_number = f"AC_{random.randint(100, 1000)}"
     study.anatomic_region = random.choice(list(AnatomicRegion))

@@ -22,16 +22,13 @@ class Study:
     anatomic_region: AnatomicRegion = AnatomicRegion.Unknown        # The anatomic region concerned
     # endregion
 
-    # region Protected members
-    _seriez: dict[str, Series] = {}                                 # Dictionary of series's to the study. Key: SeriesUID; Value: the series.
-    # endregion
-
     # region Construction
     def __init__(self, study_uid_=None):
         """
         Creates an instance of Study.
         :param study_uid_: The UID of the study. If set to None (default), an automatic StudyUID is generated.
         """
+        self._seriez: dict[str, Series] = {}                       # Dictionary of series's to the study. Key: SeriesUID; Value: the series.
         if study_uid_ is None or len(study_uid_) < 1:
             self.study_uid = DicomUidProvider.create_study_uid()
         else:

@@ -22,3 +22,29 @@ class TaxonManagementTests(unittest.TestCase):
 
         print(series)
         study.add_series(series)
+
+    def test_creation_of_multiple_patients_with_multiple_studies_succeeds(self):
+        number_of_patients = 3
+        number_of_studies = 2
+
+        patients = []
+
+        for f in range(number_of_patients):
+            patient = Patient()
+            patients.append(patient)
+
+            for p in range(number_of_persons):
+                person = Person()
+                family.add_person(person)
+
+        # patients = [create_patient() for p in range(number_of_patients)]
+        #
+        # for patient in patients:
+        #     for s in range(number_of_studies):
+        #         study = create_study()
+        #         patient.add_study(study)
+        #
+        # self.assertEqual(number_of_patients, len(patients))
+        # patient = patients[0]
+
+        self.assertEqual(number_of_studies, len(patient._studies))
