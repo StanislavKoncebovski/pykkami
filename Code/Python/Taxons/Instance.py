@@ -35,5 +35,6 @@ class Instance:
         String representing the instance.
         :return: The string representation.
         """
-        return f"[{self.instance_uid}] ({self.instance_number}). IPP=({self.instance_position_patient[0]}, {self.instance_position_patient[1]}, {self.instance_position_patient[2]}) @ {self.file_name})"
+        return f"[{self.instance_uid}] ({self.instance_number}). IPP=({self.instance_position_patient[0]}, {self.instance_position_patient[1]}, {self.instance_position_patient[2]})" \
+               f" @ {self.file_name})"
     # endregion

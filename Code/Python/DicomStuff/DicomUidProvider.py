@@ -1,3 +1,12 @@
+"""
+File:       DicomUidProvider.py
+Contents:   class DicomUidProvider
+Author:     Stanislav Koncebovski (stanislav@pikkatech.eu)
+Date:       2021-05-15 20:11
+Version:    1.0
+Copyright:  pikkatech.eu (www.pikkatech.eu)
+"""
+
 import datetime
 from random import randrange
 import DicomStuff.DicomConstants

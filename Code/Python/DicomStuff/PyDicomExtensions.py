@@ -6,6 +6,7 @@ def is_dicom(file_name: str) -> bool:
     Checks if a file contains a DICOM object (image or SR, or otherwise).
     A DICOM file has an "DICM" entry after an offset of 0x80 = 128 bytes_read (new standard).
     Older files will not be recognized by this method and stamped as "non-DICOM".
+    TODO: alreday implemented in pyDicom!
     :param file_name: The name of the file.
     :return: True, if the file is recognized as DICOM.
     """

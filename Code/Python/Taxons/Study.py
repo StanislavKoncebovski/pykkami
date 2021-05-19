@@ -66,6 +66,10 @@ class Study:
         :return: The string representation.
         """
         return f"[{self.study_uid}] ({self.study_date_time}). ID={self.study_id}: {self.study_description}"
+
+    @property
+    def label(self) -> str:
+        return f"{self.study_id} ({self.study_description})"
     # endregion
 
 

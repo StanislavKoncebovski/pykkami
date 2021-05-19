@@ -9,6 +9,10 @@ class Gender(Enum):
 
 
 class AnatomicRegion(Enum):
+    """
+    Source: http://dicom.nema.org/medical/dicom/current/output/chtml/part16/chapter_L.html
+    Table L-1. Corresponding Codes and Terms for Human Use
+    """
     ABDOMEN = 0,
     ABDOMENPELVIS = 1,
     ABDOMINALAORTA = 2,

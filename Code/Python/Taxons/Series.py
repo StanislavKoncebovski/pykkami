@@ -31,6 +31,10 @@ class Series:
     _instances: dict[str, Instance] = {}                                         # Dictionary of instances to the series. Key: InstanceUID; Value: the instance.
     # endregion
 
+    @property
+    def instances(self):
+        return self._instances
+
     # region Construction
     def __init__(self, series_uid_: str = None):
         """
@@ -64,3 +68,4 @@ class Series:
         """
         return f"[{self.series_uid}] ({self.series_datetime}). MOD={self.modality}: {self.series_description}"
     # endregion
+

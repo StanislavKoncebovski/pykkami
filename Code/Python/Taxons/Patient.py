@@ -57,6 +57,10 @@ class Patient:
         :return: The string representation.
         """
         return f"[{self.patient_id}]: {self.name} ({self.date_of_birth}, {self.gender}). {len(self._studies)} studies"
+
+    @property
+    def label(self):
+        return f"[{self.patient_id}] {self.name} ({self.date_of_birth}, {self.gender.name[0]})"
     # endregion
 
 
