@@ -2,6 +2,7 @@ from datetime import datetime
 import pydicom as dicom
 
 from DicomStuff.DicomMetadata import DicomMetadata
+from Taxons.Patient import Patient
 from Taxons.Series import Series
 from Taxons.Study import Study
 from enumerations import Gender
@@ -54,6 +55,19 @@ class PykkamiManager:
     Interface for pykkami-based applications.
     """
 
+    # region Construction
+    def __init__(self):
+        self._patient_cache: list[Patient] = []
+
+    # endregion
+
+    # region Properties
+    @property
+    def patientCache(self):
+        return self._patient_cache
+
+    # endregion
+
     # region Series Creation
     @classmethod
     def create_refurbished_series(cls, study: Study, source_file_names: list[str], metadata: DicomMetadata = None,
@@ -97,10 +111,10 @@ class PykkamiManager:
             dataset.SOPInstanceUID = DicomUidProvider.create_instance_uid()
 
             dataset.ImagePositionPatient = [
-                                            initial_image_position_patient[0],
-                                            initial_image_position_patient[1],
-                                            initial_image_position_patient[2] + instance_number * dataset.SpacingBetweenSlices
-                                           ]
+                initial_image_position_patient[0],
+                initial_image_position_patient[1],
+                initial_image_position_patient[2] + instance_number * dataset.SpacingBetweenSlices
+            ]
             instance_number += 1
             dataset.InstanceNumber = instance_number
             series.instances[dataset.SOPInstanceUID] = dataset
@@ -109,4 +123,5 @@ class PykkamiManager:
     # endregion
 
 
-
+# The quasi-singleton instance
+PykkamiManager_Instance = PykkamiManager()
