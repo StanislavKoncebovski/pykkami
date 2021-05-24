@@ -10,7 +10,6 @@ class Study:
     Abstraction of a study, according to DICOM.
     """
     # region Members
-
     study_uid: str = None                                           # Globally unique study UID
     patient: Patient = None  # The patient, owner of the study
     study_date_time: datetime = DicomConstants.MIN_STUDY_DATETIME   # Date/Time of the study
