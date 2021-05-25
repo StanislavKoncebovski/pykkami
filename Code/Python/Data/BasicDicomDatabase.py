@@ -186,7 +186,10 @@ class BasicDicomDatabase(IDicomDatabase):
             self._connection.commit()
             fetched = cursor.fetchone()
 
-            return self._get_patient(fetched)
+            patient = self._get_patient(fetched)
+
+
+            return patient
         except Error as e:
             return None
 
@@ -725,5 +728,20 @@ class BasicDicomDatabase(IDicomDatabase):
             return result
         except ValueError:
             return []
+
+    # def _append_studies_to_patient(self, patient: Patient):
+    #     try:
+    #         sql = f"SELECT * FROM {self._table_study} WHERE `patient_id` = '{patient.patient_id}'"
+    #         self._connection.row_factory = sqlite3.Row
+    #         cursor = self._connection.cursor()
+    #         cursor.execute(sql)
+    #         self._connection.commit()
+    #         fetched = cursor.fetchall()
+    #
+    #     except:
+    #         pass
     # endregion
+
+
+DicomDatabase_Instance = BasicDicomDatabase()
 

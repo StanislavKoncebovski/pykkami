@@ -1,6 +1,8 @@
 from datetime import datetime
 import pydicom as dicom
 
+from Data.BasicDicomDatabase import BasicDicomDatabase
+from Data.BasicDicomStorage import BasicDicomStorage
 from DicomStuff.DicomMetadata import DicomMetadata
 from Taxons.Patient import Patient
 from Taxons.Series import Series
@@ -58,8 +60,27 @@ class PykkamiManager:
     # region Construction
     def __init__(self):
         self._patient_cache: list[Patient] = []
+        self._database = BasicDicomDatabase()
+        self._dicomStorage = BasicDicomStorage()
 
     # endregion
+
+    # region Properties
+    @property
+    def database(self):
+        return self._database
+
+    @property
+    def dicomStorage(self):
+        return self._dicomStorage
+
+    # endregion
+
+    def initialize_database(self, database_path: str):
+        self._database.open(database_path)
+
+    def initialize_storage(self, image_storage_root):
+        self._dicomStorage.initialize(image_storage_root)
 
     # region Properties
     @property
